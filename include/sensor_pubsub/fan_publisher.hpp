@@ -8,11 +8,19 @@
 #include "rclcpp/rclcpp.hpp"
 #include "wheelchair_sensor_msgs/msg/fan_speed.hpp"
 
+struct FanSpeed
+{
+    int fan_percent_0;
+    int fan_percent_1;
+    int fan_percent_2;
+    int fan_percent_3;
+};
+
 class FanPublisher : public rclcpp::Node
 {
 public:
     FanPublisher();
-    void trigger_publish(int fan_percent_0); // New method to trigger publishing
+    void trigger_publish(FanSpeed fanSpeed); // New method to trigger publishing
 
 private:
     rclcpp::Publisher<wheelchair_sensor_msgs::msg::FanSpeed>::SharedPtr publisher_;

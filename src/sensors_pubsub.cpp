@@ -35,7 +35,9 @@ int main(int argc, char * argv[])
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // discard invalid input
       std::cout << "Invalid input. Please enter a number." << std::endl;
     } else {
-      node->trigger_publish(input);
+      FanSpeed fanSpeed;
+        fanSpeed.fan_percent_0 = input;
+      node->trigger_publish(fanSpeed);
     }
   }
 

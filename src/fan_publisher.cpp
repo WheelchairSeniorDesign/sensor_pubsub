@@ -7,18 +7,18 @@
 using namespace std::chrono_literals;
 
 FanPublisher::FanPublisher()
-: Node("fan_publisher"), count_(0)
+: Node("fan_publisher")
 {
     publisher_ = this->create_publisher<wheelchair_sensor_msgs::msg::FanSpeed>("fan_duty_cycles", 10);
 }
 
-void FanPublisher::trigger_publish(int fan_percent_0)
+void FanPublisher::trigger_publish(FanSpeed fanSpeed)
 {
     auto message = wheelchair_sensor_msgs::msg::FanSpeed();
-    message.fan_percent_0 = fan_percent_0;
-    message.fan_percent_1 = 0;
-    message.fan_percent_2 = 0;
-    message.fan_percent_3 = 0;
+    message.fan_percent_0 = fanSpeed.fan_percent_0;
+    message.fan_percent_1 = fanSpeed.fan_percent_1;
+    message.fan_percent_2 = fanSpeed.fan_percent_2;
+    message.fan_percent_3 = fanSpeed.fan_percent_3;
     RCLCPP_INFO(this->get_logger(), "Publishing: fan_percent_0=%d, fan_percent_1=%d, fan_percent_2=%d, fan_percent_3=%d",
             message.fan_percent_0, message.fan_percent_1, message.fan_percent_2, message.fan_percent_3);
     publisher_->publish(message);
