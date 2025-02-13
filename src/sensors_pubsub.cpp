@@ -15,12 +15,14 @@
 #include <iostream>
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_pubsub/fan_publisher.hpp"
+#include "sensor_pubsub/sensors_subscriber.hpp"
 
 int main(int argc, char * argv[])
 {
-
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<FanPublisher>();
+  auto node = std::make_shared<rclcpp::Node>("fan_publisher_node");
+  auto fan_publisher = std::make_shared<FanPublisher>(node);
+  auto sensors_subscriber = std::make_shared<SensorsSubscriber>(node);
 
   std::thread spin_thread([&]() {
     rclcpp::spin(node);
@@ -28,27 +30,25 @@ int main(int argc, char * argv[])
 
   int input;
   while (rclcpp::ok()) {
-    std::cout << "Enter a number to set fan_percent_0: ";
+    std::cout << "Enter a number to set fan_percent_0 (0-100): ";
     std::cin >> input;
     if (std::cin.fail()) {
       std::cin.clear(); // clear the error flag
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // discard invalid input
       std::cout << "Invalid input. Please enter a number." << std::endl;
+    } else if (input < 0 || input > 100) {
+      std::cout << "Invalid input. Please enter a number between 0 and 100." << std::endl;
     } else {
       FanSpeed fanSpeed;
-        fanSpeed.fan_percent_0 = input;
-      node->trigger_publish(fanSpeed);
+      fanSpeed.fan_percent_0 = input;
+      fanSpeed.fan_percent_1 = 0;
+      fanSpeed.fan_percent_2 = 0;
+      fanSpeed.fan_percent_3 = 0;
+      fan_publisher->trigger_publish(fanSpeed);
     }
   }
 
   rclcpp::shutdown();
   spin_thread.join();
   return 0;
-
-  /**
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<FanPublisher>());
-  rclcpp::shutdown();
-  return 0;
-**/
 }

@@ -16,15 +16,16 @@ struct FanSpeed
     int fan_percent_3;
 };
 
-class FanPublisher : public rclcpp::Node
+class FanPublisher
 {
 public:
-    FanPublisher();
-    void trigger_publish(FanSpeed fanSpeed); // New method to trigger publishing
+    FanPublisher(rclcpp::Node::SharedPtr node);
+
+    void trigger_publish(FanSpeed fanSpeed);
 
 private:
+    rclcpp::Node::SharedPtr node_;
     rclcpp::Publisher<wheelchair_sensor_msgs::msg::FanSpeed>::SharedPtr publisher_;
-    size_t count_;
 };
 
 /**
