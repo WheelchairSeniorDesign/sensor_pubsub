@@ -21,6 +21,7 @@ find_package(wheelchair_sensor_msgs REQUIRED)
 add_executable(fan_speed
         src/sensors_pubsub.cpp
         src/fan_publisher.cpp
+        src/light_publisher.cpp
         src/sensors_subscriber.cpp)
 ament_target_dependencies(fan_speed rclcpp wheelchair_sensor_msgs)
 
