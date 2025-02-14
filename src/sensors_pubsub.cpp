@@ -17,6 +17,7 @@
 #include "sensor_pubsub/fan_publisher.hpp"
 #include "sensor_pubsub/sensors_subscriber.hpp"
 #include "sensor_pubsub/light_publisher.hpp"
+#include "sensor_pubsub/fingerprint_subscriber.hpp"
 
 enum class Mode {
   FAN,
@@ -26,10 +27,11 @@ enum class Mode {
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<rclcpp::Node>("fan_publisher_node");
+  auto node = std::make_shared<rclcpp::Node>("sensors_demo_node");
   auto fan_publisher = std::make_shared<FanPublisher>(node);
-  auto sensors_subscriber = std::make_shared<SensorsSubscriber>(node);
   auto light_publisher = std::make_shared<LightPublisher>(node);
+  auto sensors_subscriber = std::make_shared<SensorsSubscriber>(node);
+  auto fingerprint_subscriber = std::make_shared<FingerprintSubscriber>(node);
 
   std::thread spin_thread([&]() {
     rclcpp::spin(node);
