@@ -13,19 +13,32 @@
 // limitations under the License.
 
 #include <iostream>
+#include <thread>
+#include <mutex>
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_pubsub/fan_publisher.hpp"
 #include "sensor_pubsub/sensors_subscriber.hpp"
 #include "sensor_pubsub/light_publisher.hpp"
 #include "sensor_pubsub/fingerprint_subscriber.hpp"
+#include "sensor_pubsub/ref_speed_publisher.hpp"
 
 enum class Mode {
   FAN,
   LIGHT
 };
 
-int main(int argc, char * argv[])
-{
+void run_ref_speed_publisher(rclcpp::Node::SharedPtr node, std::shared_ptr<SensorsSubscriber> sensors_subscriber, std::shared_ptr<RefSpeedPublisher> ref_speed_publisher) {
+  while (rclcpp::ok()) {
+    auto sensor_data = sensors_subscriber->get_latest_sensor_data();
+    RefSpeed ref_speed;
+    ref_speed.leftSpeed = sensor_data.left_speed;
+    ref_speed.rightSpeed = sensor_data.right_speed;
+    ref_speed_publisher->trigger_publish(ref_speed);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+}
+
+int main(int argc, char * argv[]) {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<rclcpp::Node>("sensors_demo_node");
   auto fan_publisher = std::make_shared<FanPublisher>(node);
@@ -33,9 +46,15 @@ int main(int argc, char * argv[])
   auto sensors_subscriber = std::make_shared<SensorsSubscriber>(node);
   auto fingerprint_subscriber = std::make_shared<FingerprintSubscriber>(node);
 
+  //I made a second node to publish this because of the text input. Probably could do it all in one node normally
+  auto ref_speed_node = std::make_shared<rclcpp::Node>("ref_speed_node");
+  auto ref_speed_publisher = std::make_shared<RefSpeedPublisher>(ref_speed_node);
+
   std::thread spin_thread([&]() {
     rclcpp::spin(node);
   });
+
+  std::thread ref_speed_thread(run_ref_speed_publisher, ref_speed_node, sensors_subscriber, ref_speed_publisher);
 
   Mode mode = Mode::FAN;
   std::string input;
@@ -88,5 +107,6 @@ int main(int argc, char * argv[])
 
   rclcpp::shutdown();
   spin_thread.join();
+  ref_speed_thread.join();
   return 0;
 }
