@@ -8,11 +8,11 @@
 #include "rclcpp/rclcpp.hpp"
 #include "wheelchair_sensor_msgs/msg/light.hpp"
 
-enum LightStates{
+enum class LightStates{
   OFF = 0,
   STEADY = 1,
   FLASHING = 2,
-  } state;
+  };
 
 class LightPublisher {
 public:

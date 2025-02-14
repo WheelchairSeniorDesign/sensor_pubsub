@@ -3,7 +3,7 @@
 //
 
 #include "sensor_pubsub/light_publisher.hpp"
-#include "wheelchair_sensor_msgs/msg/light.hpp"
+
 
 LightPublisher::LightPublisher(rclcpp::Node::SharedPtr node)
 : node_(node)

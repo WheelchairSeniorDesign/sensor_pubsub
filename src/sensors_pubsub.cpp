@@ -16,6 +16,12 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_pubsub/fan_publisher.hpp"
 #include "sensor_pubsub/sensors_subscriber.hpp"
+#include "sensor_pubsub/light_publisher.hpp"
+
+enum class Mode {
+  FAN,
+  LIGHT
+};
 
 int main(int argc, char * argv[])
 {
@@ -23,28 +29,58 @@ int main(int argc, char * argv[])
   auto node = std::make_shared<rclcpp::Node>("fan_publisher_node");
   auto fan_publisher = std::make_shared<FanPublisher>(node);
   auto sensors_subscriber = std::make_shared<SensorsSubscriber>(node);
+  auto light_publisher = std::make_shared<LightPublisher>(node);
 
   std::thread spin_thread([&]() {
     rclcpp::spin(node);
   });
 
-  int input;
+  Mode mode = Mode::FAN;
+  std::string input;
   while (rclcpp::ok()) {
-    std::cout << "Enter a number to set fan_percent_0 (0-100): ";
+    std::cout << "Enter 'fan' to set fan speed or 'light' to set light state: ";
     std::cin >> input;
-    if (std::cin.fail()) {
-      std::cin.clear(); // clear the error flag
-      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // discard invalid input
-      std::cout << "Invalid input. Please enter a number." << std::endl;
-    } else if (input < 0 || input > 100) {
-      std::cout << "Invalid input. Please enter a number between 0 and 100." << std::endl;
+    if (input == "fan") {
+      mode = Mode::FAN;
+    } else if (input == "light") {
+      mode = Mode::LIGHT;
     } else {
-      FanSpeed fanSpeed;
-      fanSpeed.fan_percent_0 = input;
-      fanSpeed.fan_percent_1 = 0;
-      fanSpeed.fan_percent_2 = 0;
-      fanSpeed.fan_percent_3 = 0;
-      fan_publisher->trigger_publish(fanSpeed);
+      std::cout << "Invalid mode. Please enter 'fan' or 'light'." << std::endl;
+      continue;
+    }
+
+    if (mode == Mode::FAN) {
+      int fan_input;
+      std::cout << "Enter a number to set fan_percent_0 (0-100): ";
+      std::cin >> fan_input;
+      if (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Invalid input. Please enter a number." << std::endl;
+      } else if (fan_input < 0 || fan_input > 100) {
+        std::cout << "Invalid input. Please enter a number between 0 and 100." << std::endl;
+      } else {
+        FanSpeed fanSpeed;
+        fanSpeed.fan_percent_0 = fan_input;
+        fanSpeed.fan_percent_1 = 0;
+        fanSpeed.fan_percent_2 = 0;
+        fanSpeed.fan_percent_3 = 0;
+        fan_publisher->trigger_publish(fanSpeed);
+      }
+    } else if (mode == Mode::LIGHT) {
+      int light_input;
+      std::cout << "Enter a number to set light state (0 to 2): ";
+      std::cin >> light_input;
+      if (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Invalid input. Please enter a number." << std::endl;
+      } else if (light_input < 0 || light_input > 2) {
+        std::cout << "Invalid input. Please enter 0, 1, or 2." << std::endl;
+      } else {
+        LightStates lightState = static_cast<LightStates>(light_input);
+        light_publisher->trigger_publish(lightState);
+      }
     }
   }
 
